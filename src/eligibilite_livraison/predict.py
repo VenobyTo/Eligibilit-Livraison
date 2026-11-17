@@ -30,7 +30,15 @@ def predict_with_threshold(
             f"Variables manquantes dans les données : {sorted(missing_features)}"
         )
 
-    probabilities = model.predict_proba(data[FEATURE_COLUMNS])[:, 1]
+    prepared_data = data.copy()
+    if "carrier_capacity" in prepared_data.columns:
+        prepared_data["carrier_capacity"] = np.where(
+            prepared_data["carrier_capacity"] > 1.0,
+            (prepared_data["carrier_capacity"] / 50.0).clip(0.0, 1.0),
+            prepared_data["carrier_capacity"],
+        )
+
+    probabilities = model.predict_proba(prepared_data[FEATURE_COLUMNS])[:, 1]
     predictions = (probabilities >= threshold).astype(int)
     result = data.copy()
     result["eligibility_probability"] = probabilities.round(4)
@@ -53,6 +61,9 @@ def predict_order_eligibility(
     input_df = pd.DataFrame(
         [{feature: order_data[feature] for feature in FEATURE_COLUMNS}]
     )
+    if input_df["carrier_capacity"].iloc[0] > 1.0:
+        input_df["carrier_capacity"] = (input_df["carrier_capacity"] / 50.0).clip(0.0, 1.0)
+
     probability = float(model.predict_proba(input_df)[0, 1])
     eligible = probability >= threshold
     return {

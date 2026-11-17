@@ -1,0 +1,62 @@
+name: livraison-express-prod
+
+services:
+  mongodb:
+    image: mongo:8
+    container_name: livraison-mongo-prod
+    restart: always
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    volumes:
+      - mongo_prod_data:/data/db
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --eval 'db.runCommand({ ping: 1 }).ok' localhost:27017/test | grep 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: livraison-api-prod
+    restart: always
+    ports:
+      - "${API_PORT:-8001}:8000"
+    volumes:
+      - ./artifacts:/app/artifacts
+      - ./reports:/app/reports
+    environment:
+      - GIT_PYTHON_REFRESH=quiet
+      - MONGO_URI=mongodb://mongodb:27017
+      - MONGO_DB=livraison_express
+      - MONGO_COLLECTION=orders
+      - PYTHONPATH=/app/src
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    command: uvicorn eligibilite_livraison.api:app --host 0.0.0.0 --port 8000
+
+  orchestrator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: livraison-orchestrator-prod
+    restart: always
+    volumes:
+      - ./artifacts:/app/artifacts
+      - ./reports:/app/reports
+    environment:
+      - GIT_PYTHON_REFRESH=quiet
+      - MONGO_URI=mongodb://mongodb:27017
+      - MONGO_DB=livraison_express
+      - MONGO_COLLECTION=orders
+      - ORCHESTRATOR_INTERVAL_SECONDS=86400
+      - PYTHONPATH=/app/src
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    command: python -m eligibilite_livraison.orchestrator --schedule --interval-seconds 86400
+
+volumes:
+  mongo_prod_data:

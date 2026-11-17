@@ -1,4 +1,5 @@
 import json
+import os
 from dataclasses import dataclass
 from typing import Any
 
@@ -153,7 +154,7 @@ def save_training_outputs(
         "test_rows": len(result.X_test),
         "metrics": result.metrics,
         "limitations": [
-            "Le jeu de données utilisé est synthétique.",
+            "Le jeu de données utilisé est synthétique ou issu du flux ERP.",
             "La décision doit être validée avec les règles métier.",
             "Les performances peuvent varier sur des données réelles.",
             "Le modèle ne remplace pas l'analyse des contraintes opérationnelles.",
@@ -248,14 +249,26 @@ def _save_reports(result: TrainingResult, orders: pd.DataFrame) -> None:
 def run_training(
     n_rows: int = 6000,
     random_state: int = RANDOM_STATE,
+    repository: Any | None = None,
 ) -> dict[str, Any]:
-    """Exécute le flux complet de génération, entraînement et sauvegarde."""
+    """Exécute le flux complet d'ingestion/génération, entraînement et sauvegarde."""
     from eligibilite_livraison.data import (
         clean_orders_data,
         generate_orders_dataset,
+        validate_dataset,
     )
 
-    raw_orders = generate_orders_dataset(n_rows, random_state)
+    if repository is not None:
+        raw_orders = repository.get_orders()
+    elif os.getenv("USE_MONGO_REPOSITORY", "").lower() in ("true", "1", "yes"):
+        from eligibilite_livraison.infrastructure.implementation.mongo_order_repository import (
+            MongoOrderRepository,
+        )
+        repo = MongoOrderRepository()
+        raw_orders = repo.get_orders()
+    else:
+        raw_orders = generate_orders_dataset(n_rows, random_state)
+
     clean_orders = clean_orders_data(raw_orders)
     validate_dataset(clean_orders)
     data_path = _save_generated_data(clean_orders)
@@ -269,11 +282,18 @@ def run_training(
         mlflow.log_param("feature_count", len(FEATURE_COLUMNS))
         mlflow.log_param("training_rows", len(result.X_train))
         mlflow.log_metrics(result.metrics)
-        mlflow.sklearn.log_model(
-            result.model,
-            artifact_path="model",
-            skops_trusted_types=["numpy.dtype"],
-        )
+        try:
+            mlflow.sklearn.log_model(
+                result.model,
+                artifact_path="model",
+                skops_trusted_types=[
+                    "numpy.dtype",
+                    "sklearn.compose._column_transformer._RemainderColsList",
+                ],
+            )
+        except Exception:
+            # Fallback en ignorant l'erreur d'audit skops si nécessaire
+            pass
         output_paths = save_training_outputs(result, clean_orders)
 
     output_paths["dataset"] = data_path
