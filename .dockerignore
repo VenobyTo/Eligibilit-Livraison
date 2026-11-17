@@ -1,0 +1,41 @@
+# Environnements virtuels et caches Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Données générées et artefacts locaux (recréés à l'entraînement ou montés en volume)
+mlruns/
+mlartifacts/
+mlflow.db
+artifacts/*
+data/generated/*
+reports/*
+
+# Git et CI/CD
+.git/
+.gitignore
+.github/
+
+# Fichiers Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Documentation et ADR (inutiles dans le conteneur d'exécution)
+README.md
+CONTRIBUTING.md
+SECURITY.md
+CODE_OF_CONDUCT.md
+LICENSE
+ADR.md
+docs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
