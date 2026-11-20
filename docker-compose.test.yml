@@ -16,6 +16,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: test
     container_name: livraison-app-test
     depends_on:
       mongodb-test:

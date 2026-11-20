@@ -39,7 +39,9 @@ services:
 
   # --- Tests unitaires ---
   test:
-    build: .
+    build:
+      context: .
+      target: test
     container_name: livraison-test
     environment:
       - GIT_PYTHON_REFRESH=quiet

@@ -7,6 +7,11 @@ __pycache__/
 .ruff_cache/
 .mypy_cache/
 
+# Fichiers d'environnement et secrets (JAMAIS dans l'image Docker)
+.env
+.env.*
+*.env
+
 # Données générées et artefacts locaux (recréés à l'entraînement ou montés en volume)
 mlruns/
 mlartifacts/
@@ -27,6 +32,7 @@ docker-compose*.yml
 
 # Documentation et ADR (inutiles dans le conteneur d'exécution)
 README.md
+CHANGELOG.md
 CONTRIBUTING.md
 SECURITY.md
 CODE_OF_CONDUCT.md
