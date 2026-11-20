@@ -77,10 +77,6 @@ jobs:
       - name: Récupération du code source (Checkout)
         uses: actions/checkout@v4
 
-      - name: Normalisation du nom de l'image en minuscules
-        run: |
-          echo "IMAGE_LC=$(echo '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-
       - name: Configuration de Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -96,7 +92,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.IMAGE_LC }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr
