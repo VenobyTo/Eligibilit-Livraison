@@ -1,6 +1,6 @@
 # Éligibilité à la Livraison Express – Industrialisation MLOps
 
-Application Python industrialisée (Clean Code & MLOps) issue du prototype `project_test_v1_final_final2.ipynb`. Elle assure l'ingestion de commandes depuis une base de données de production (**MongoDB** ou **PostgreSQL** via le pattern *Repository*, avec repli sur générateur synthétique), la validation et le nettoyage des données, l'entraînement orchestré d'un pipeline `scikit-learn` tracé dans **MLflow**, et l'exposition d'une **API REST FastAPI** conteneurisée via **Docker** et publiée sur **GitHub Container Registry (`ghcr.io`)**.
+Application Python industrialisée (Clean Code & MLOps) permettant de prédire l'éligibilité des commandes à la livraison express. Elle assure l'ingestion de commandes depuis une base de données de production (**MongoDB** ou **PostgreSQL** via le pattern *Repository*, avec repli sur générateur synthétique), la validation et le nettoyage des données, l'entraînement orchestré d'un pipeline `scikit-learn` tracé dans **MLflow**, et l'exposition d'une **API REST FastAPI** conteneurisée via **Docker** et publiée sur **GitHub Container Registry (`ghcr.io`)**.
 
 ---
 
@@ -12,7 +12,6 @@ Projet/
 │   └── ci-cd.yml                  Pipeline CI/CD (Tests + Build & Push GHCR)
 ├── artifacts/                     Modèle sérialisé (joblib), métriques et Model Card
 ├── data/generated/                Snapshots CSV des données nettoyées d'entraînement
-├── docs/adr/                      Architecture Decision Records (ADR-0001 à ADR-0006)
 ├── reports/                       Graphiques d'audit, matrice de confusion, importance des variables
 ├── src/eligibilite_livraison/
 │   ├── config.py                  Chemins, hyperparamètres et constantes du modèle
@@ -30,7 +29,6 @@ Projet/
 │           ├── mongo_order_repository.py  Adaptateur MongoDB (Base analytique de production)
 │           └── postgres_order_repository.py Adaptateur PostgreSQL (Base OLTP historique)
 ├── tests/                         Suite de tests unitaires et d'intégration (API, Data, Repo, Orchestrateur)
-├── ADR.md                         Index consolidé des 6 ADR du projet
 ├── CONTRIBUTING.md                Guide de contribution et workflow GitFlow
 ├── CODE_OF_CONDUCT.md             Code de conduite
 ├── SECURITY.md                    Politique de sécurité
@@ -131,15 +129,3 @@ python -m unittest discover -s tests -v
 Le workflow GitHub Actions (`.github/workflows/ci-cd.yml`) s'exécute à chaque `push` / `pull_request` :
 1. **Job `test`** : Monte un conteneur de service `mongo:8` et exécute toute la suite de tests.
 2. **Job `build-and-push`** : Construit l'image Docker multi-stage et la publie sur **GitHub Container Registry** (`ghcr.io/venobyto/eligibilit-livraison`).
-
----
-
-## Architecture Decision Records (ADR)
-
-Toutes les décisions structurantes sont documentées dans [ADR.md](ADR.md) et dans `docs/adr/` :
-- [ADR-0001 : Stockage des commandes](docs/adr/ADR-0001-stockage-des-commandes.md)
-- [ADR-0002 : Stockage des artefacts de modèle](docs/adr/ADR-0002-stockage-des-artefacts-de-modele.md)
-- [ADR-0003 : Quelle plateforme de déploiement ?](docs/adr/ADR-0003-plateforme-de-deploiement.md)
-- [ADR-0004 : Cloud, On-premise ou local ?](docs/adr/ADR-0004-cloud-on-premise-ou-local.md)
-- [ADR-0005 : Quelle stratégie de déploiement ?](docs/adr/ADR-0005-strategie-de-deploiement.md)
-- [ADR-0006 : PostgreSQL, MongoDB, autre ?](docs/adr/ADR-0006-postgresql-mongodb-autre.md)
