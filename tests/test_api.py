@@ -137,6 +137,41 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(data[0]["order_id"], "BATCH-1")
         self.assertEqual(data[1]["order_id"], "BATCH-2")
 
+    def test_metrics_endpoint(self):
+        response = self.client.get("/metrics")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn("api_metrics", data)
+        self.assertIn("ml_training_metrics", data)
+        self.assertIn("ml_live_monitoring", data)
+        self.assertTrue(data["model_loaded"])
+
+    def test_realtime_stream_order_and_dashboard(self):
+        dashboard = self.client.get("/logisticien")
+        self.assertEqual(dashboard.status_code, 200)
+        self.assertIn("Notifications Logisticien", dashboard.text)
+
+        order = {
+            "order_id": "STREAM-001",
+            "hour": 10,
+            "day_of_week": 1,
+            "weekend": 0,
+            "distance_km": 3.5,
+            "order_value_eur": 95.0,
+            "weight_kg": 1.8,
+            "stock_available": 1,
+            "preparation_time_min": 12.0,
+            "carrier_capacity": 0.9,
+            "weather": "clear",
+            "delivery_zone": "centre",
+            "customer_type": "business",
+        }
+        response = self.client.post("/stream/order", json=order)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["order_id"], "STREAM-001")
+        self.assertIn(data["decision"], {"oui", "non"})
+
 
 if __name__ == "__main__":
     unittest.main()
